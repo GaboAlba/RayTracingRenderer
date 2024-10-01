@@ -1,10 +1,12 @@
-﻿namespace RayTracingRenderer
+﻿using RayTracingRenderer.PPMImage;
+
+namespace RayTracingRenderer
 {
     class Program
     {
         public static int Main()
         {
-            Console.WriteLine("Hello, World!");
+            ImageGenerator.RenderImage(256, 256);
             return 0;
         }
     }
