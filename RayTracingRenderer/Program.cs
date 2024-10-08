@@ -1,7 +1,6 @@
-﻿using RayTracingRenderer.PPMImage;
-
-namespace RayTracingRenderer
+﻿namespace RayTracingRenderer
 {
+    using RayTracingRenderer.PPMImage;
     class Program
     {
         public static int Main()
