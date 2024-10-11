@@ -11,9 +11,9 @@ namespace RayTracingRenderer.Rays
 
     public class Ray
     {
-        private Vector3 Origin {  get; init; }
+        public Vector3 Origin {  get; init; }
 
-        private Vector3 Direction { get; init; }
+        public Vector3 Direction { get; init; }
 
         /// <summary>
         /// Default constructor
@@ -55,34 +55,26 @@ namespace RayTracingRenderer.Rays
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
-        public static Vector3 RayColor(Ray ray)
+        public static Vector3 RayColor(Ray ray, IHittableObject world)
         {
+            var record = new HitRecord();
             var sphere = new Sphere(center: new Vector3(0, 0, -1), radius: 0.5f);
-            if (IsSphereHit(sphere, ray))
+
+            //if (IsSphereHit(sphere, ray))
+            //{
+            //    return new Vector3(1, 0, 0); // Draw red if there is an intersection
+            //}
+
+            var time = HitSphere(sphere, ray);
+            if (time > 0)
             {
-                return new Vector3(1, 0, 0); // Draw red if there is an intersection
+                var normalVector = Vector3.Normalize(ray.GetPosition(time) - sphere.Center);
+                return 0.5f * new Vector3(normalVector.X + 1, normalVector.Y + 1, normalVector.Z + 1);
             }
 
             var unitDirection = Vector3.Normalize(ray.Direction);
             var a = 0.5f * (unitDirection.Y + 1.0f);
             return (1.0f - a) * new Vector3(1.0f, 1.0f, 1.0f) + a * new Vector3(0.5f, 0.7f, 1.0f);
-        }
-
-        public static bool IsSphereHit(Sphere sphere, Ray ray)
-        {
-            if (sphere == null)
-            {
-                return false;
-            }
-
-            var centerToRayVector = sphere.Center - ray.Origin;
-
-            // Quadratic formula
-            var a = Vector3.Dot(ray.Direction, ray.Direction);
-            var b = -2.0f * Vector3.Dot(ray.Direction, centerToRayVector);
-            var c = Vector3.Dot(centerToRayVector, centerToRayVector) - sphere.Radius * sphere.Radius;
-            var discriminant = (b * b) - (4 * a * c);
-            return discriminant >= 0;
         }
     }
 }
