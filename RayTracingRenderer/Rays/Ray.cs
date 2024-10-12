@@ -2,6 +2,7 @@
 namespace RayTracingRenderer.Rays
 {
     using RayTracingRenderer.Shapes;
+    using RayTracingRenderer.Shapes.Hittable;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -58,18 +59,9 @@ namespace RayTracingRenderer.Rays
         public static Vector3 RayColor(Ray ray, IHittableObject world)
         {
             var record = new HitRecord();
-            var sphere = new Sphere(center: new Vector3(0, 0, -1), radius: 0.5f);
-
-            //if (IsSphereHit(sphere, ray))
-            //{
-            //    return new Vector3(1, 0, 0); // Draw red if there is an intersection
-            //}
-
-            var time = HitSphere(sphere, ray);
-            if (time > 0)
+            if (world.HitObject(ray, 0, float.PositiveInfinity, record, out var outRecord))
             {
-                var normalVector = Vector3.Normalize(ray.GetPosition(time) - sphere.Center);
-                return 0.5f * new Vector3(normalVector.X + 1, normalVector.Y + 1, normalVector.Z + 1);
+                return 0.5f * (outRecord.HitNormal + new Vector3(1, 1, 1));
             }
 
             var unitDirection = Vector3.Normalize(ray.Direction);

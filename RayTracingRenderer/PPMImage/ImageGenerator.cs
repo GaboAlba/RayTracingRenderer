@@ -3,6 +3,8 @@
 
     using log4net;
     using RayTracingRenderer.Rays;
+    using RayTracingRenderer.Shapes;
+    using RayTracingRenderer.Shapes.Hittable;
     using System.Numerics;
     public static class ImageGenerator
     {
@@ -17,6 +19,10 @@
                 focalLength: 1.0f,
                 cameraCenter: new Vector3(0, 0, 0));
 
+            var world = new HittableObjectsList();
+            world.objects.Add(new Sphere(new Vector3(0, 0, -1), 0.5f));
+            world.objects.Add(new Sphere(new Vector3(0, -100.5f, -1), 100));
+
 
             Console.WriteLine("P3");
             Console.WriteLine($"{camera.ImageWidth} {camera.ImageHeight}");
@@ -30,7 +36,7 @@
                     var rayDirection = pixelCenter - camera.CameraCenter;
                     Ray ray = new Ray(camera.CameraCenter, rayDirection);
 
-                    var pixelColor = Ray.RayColor(ray);
+                    var pixelColor = Ray.RayColor(ray, world);
                     WriteColor(pixelColor);
                 }
             }

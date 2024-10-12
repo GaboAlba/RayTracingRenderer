@@ -1,9 +1,9 @@
 ﻿namespace RayTracingRenderer.Shapes
 {
     using RayTracingRenderer.Rays;
+    using RayTracingRenderer.Shapes.Hittable;
     using System.Numerics;
 
-    // TODO: Look into making this a struct
     public class Sphere : IHittableObject
     {
         public Vector3 Center { get; init; }
@@ -16,30 +16,44 @@
             Radius = Math.Max(0, radius);
         }
 
-        public bool HitObject(Ray ray, float rayTMin, float rayTMax, HitRecord record)
+        public bool HitObject(Ray ray, float rayTMin, float rayTMax, HitRecord record, out HitRecord outputRecord)
         {
             if (!this.IsSphereHit(ray, out var discriminant, out var a, out var h))
             {
+                outputRecord = record;
                 return false;
             }
 
-            // TODO: Refactor this if statement
+            var root = this.GetNearestRoot(discriminant, h, a, rayTMin, rayTMax);
+            if (root == null)
+            {
+                outputRecord = record;
+                return false;
+            }
+
+            // Log the hit
+            record.HitTime = (float)root;
+            record.HitPosition = ray.GetPosition(record.HitTime);
+            record.HitNormal = (record.HitPosition - this.Center) / this.Radius;
+            record.SetFaceNormal(ray, record.HitNormal);
+
+            outputRecord = record;
+            return true;
+        }
+
+        private float? GetNearestRoot(float discriminant, float h, float a, float rayTMin, float rayTMax)
+        {
             var root = (h - (float)Math.Sqrt(discriminant)) / a;
             if (root <= rayTMin || root >= rayTMax)
             {
                 root = (h + (float)Math.Sqrt(discriminant)) / a;
                 if (root <= rayTMin || root >= rayTMax)
                 {
-                    return false;
+                    return null;
                 }
             }
 
-            // Log the hit
-            record.HitTime = root;
-            record.HitPosition = ray.GetPosition(record.HitTime);
-            record.HitNormal = (record.HitPosition - this.Center) / this.Radius;
-
-            return true;
+            return root;
         }
 
         private float GetDiscriminant(Ray ray, out float a, out float h, out float c)
