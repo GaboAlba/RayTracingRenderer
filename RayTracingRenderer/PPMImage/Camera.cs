@@ -2,12 +2,7 @@
 
 namespace RayTracingRenderer.PPMImage
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class Camera
     {
@@ -23,6 +18,10 @@ namespace RayTracingRenderer.PPMImage
 
         public float FocalLength { get; set; }
 
+        public int SamplesPerPixel { get; set; }
+
+        public float PixelSamplesScale => 1.0f / this.SamplesPerPixel;
+
         public Vector3 CameraCenter { get; set; }
 
         public Vector3 ViewportU => new Vector3(this.ViewportWidth, 0, 0);
@@ -37,13 +36,14 @@ namespace RayTracingRenderer.PPMImage
 
         public Vector3 Pixel100Location => this.ViewportUpperLeftPixel + 0.5f * (this.PixelDeltaU + this.PixelDeltaV);
 
-        public Camera(float aspectRatio, int imageWidth, float viewportHeight, float focalLength, Vector3 cameraCenter)
+        public Camera(float aspectRatio, int imageWidth, float viewportHeight, float focalLength, Vector3 cameraCenter, int samplesPerPixel)
         {
             this.AspectRatio = aspectRatio;
             this.ImageWidth = imageWidth;
             this.ViewportHeight = viewportHeight;
             this.FocalLength = focalLength;
             this.CameraCenter = cameraCenter;
+            this.SamplesPerPixel = samplesPerPixel;
         }
 
         private int GetImageHeight()

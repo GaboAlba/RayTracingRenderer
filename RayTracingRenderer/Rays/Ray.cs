@@ -1,20 +1,20 @@
 ﻿
 namespace RayTracingRenderer.Rays
 {
-    using RayTracingRenderer.Shapes;
+    using RayTracingRenderer.Materials;
+    using RayTracingRenderer.PPMImage;
     using RayTracingRenderer.Shapes.Hittable;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    using RayTracingRenderer.Shared;
+    using RayTracingRenderer.Utils;
     using System.Numerics;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class Ray
     {
-        public Vector3 Origin {  get; init; }
+        public Vector3 Origin { get; init; }
 
-        public Vector3 Direction { get; init; }
+        public Vector3 Direction { get; set; }
+
+        public int MaxBounces { get; init; }
 
         /// <summary>
         /// Default constructor
@@ -26,10 +26,21 @@ namespace RayTracingRenderer.Rays
         /// </summary>
         /// <param name="origin"></param>
         /// <param name="direction"></param>
-        public Ray(Vector3 origin, Vector3 direction)
+        public Ray(Vector3 origin, Vector3 direction, int maxBounces = 10)
         {
             this.Origin = origin;
             this.Direction = direction;
+            this.MaxBounces = maxBounces;
+        }
+
+        public Ray(Camera camera, int pixelXPosition, int pixelYposition, int maxBounces = 10)
+        {
+            this.Origin = camera.CameraCenter;
+            var offset = RayTracingHelper.SampleSquare();
+            var pixelCenter = camera.Pixel100Location + ((pixelXPosition + offset.X) * camera.PixelDeltaU) + ((pixelYposition + offset.Y) * camera.PixelDeltaV);
+            var rayDirection = pixelCenter - camera.CameraCenter;
+            this.Direction = rayDirection;
+            this.MaxBounces = maxBounces;
         }
 
         /// <summary>
@@ -56,15 +67,30 @@ namespace RayTracingRenderer.Rays
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
-        public static Vector3 RayColor(Ray ray, IHittableObject world)
+        public Vector3 RayColor(Ray ray, IHittableObject world, int depth)
         {
-            var record = new HitRecord();
-            if (world.HitObject(ray, 0, float.PositiveInfinity, record, out var outRecord))
+            // Stop if max amount of bounces has been achieved
+            if (depth <= 0)
             {
-                return 0.5f * (outRecord.HitNormal + new Vector3(1, 1, 1));
+                return new Vector3(0, 0, 0);
             }
 
-            var unitDirection = Vector3.Normalize(ray.Direction);
+            var record = new HitRecord();
+            if (world.HitObject(
+                ray,
+                new Interval(0.001f, float.PositiveInfinity), // Adding 0.0001 to prevent floating point anomalies
+                record,
+                out var outRecord))
+            {
+                outRecord.Material = outRecord.Material ?? new DiffuseMaterial(new Vector3(1, 1, 1)); // If material is not set, default to a diffuse material
+                if (outRecord.Material.Scatter(ray, outRecord, out var attenuation, out var scatteredRay))
+                {
+                    return attenuation * this.RayColor(scatteredRay, world, depth - 1);
+                }
+                return new Vector3(0, 0, 0);
+            }
+
+            var unitDirection = Vector3.Normalize(this.Direction);
             var a = 0.5f * (unitDirection.Y + 1.0f);
             return (1.0f - a) * new Vector3(1.0f, 1.0f, 1.0f) + a * new Vector3(0.5f, 0.7f, 1.0f);
         }

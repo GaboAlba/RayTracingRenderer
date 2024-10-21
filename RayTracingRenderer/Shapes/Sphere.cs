@@ -1,7 +1,10 @@
 ﻿namespace RayTracingRenderer.Shapes
 {
+    using RayTracingRenderer;
+    using RayTracingRenderer.Materials;
     using RayTracingRenderer.Rays;
     using RayTracingRenderer.Shapes.Hittable;
+    using RayTracingRenderer.Utils;
     using System.Numerics;
 
     public class Sphere : IHittableObject
@@ -10,13 +13,16 @@
 
         public float Radius { get; init; }
 
-        public Sphere(Vector3 center, float radius)
+        public IMaterial Material { get; set; }
+
+        public Sphere(Vector3 center, float radius, IMaterial material)
         {
             Center = center;
             Radius = Math.Max(0, radius);
+            this.Material = material;
         }
 
-        public bool HitObject(Ray ray, float rayTMin, float rayTMax, HitRecord record, out HitRecord outputRecord)
+        public bool HitObject(Ray ray, Interval interval, HitRecord record, out HitRecord outputRecord)
         {
             if (!this.IsSphereHit(ray, out var discriminant, out var a, out var h))
             {
@@ -24,7 +30,7 @@
                 return false;
             }
 
-            var root = this.GetNearestRoot(discriminant, h, a, rayTMin, rayTMax);
+            var root = this.GetNearestRoot(discriminant, h, a, interval);
             if (root == null)
             {
                 outputRecord = record;
@@ -36,18 +42,19 @@
             record.HitPosition = ray.GetPosition(record.HitTime);
             record.HitNormal = (record.HitPosition - this.Center) / this.Radius;
             record.SetFaceNormal(ray, record.HitNormal);
+            record.Material = this.Material;
 
             outputRecord = record;
             return true;
         }
 
-        private float? GetNearestRoot(float discriminant, float h, float a, float rayTMin, float rayTMax)
+        private float? GetNearestRoot(float discriminant, float h, float a, Interval interval)
         {
             var root = (h - (float)Math.Sqrt(discriminant)) / a;
-            if (root <= rayTMin || root >= rayTMax)
+            if (!interval.Surrounds(root))
             {
                 root = (h + (float)Math.Sqrt(discriminant)) / a;
-                if (root <= rayTMin || root >= rayTMax)
+                if (!interval.Surrounds(root))
                 {
                     return null;
                 }

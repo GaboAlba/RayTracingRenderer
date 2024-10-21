@@ -1,5 +1,6 @@
-﻿namespace RayTracingRenderer.Shapes.Hittable
+﻿namespace RayTracingRenderer
 {
+    using RayTracingRenderer.Materials;
     using RayTracingRenderer.Rays;
     using System.Numerics;
     public record HitRecord
@@ -23,6 +24,11 @@
         /// Gets or sets a value indicating whether a normal should go to the inside or outside of an object
         /// </summary>
         public bool FrontFace { get; set; }
+
+        /// <summary>
+        /// Gets or set the value for the material which was hit
+        /// </summary>
+        public IMaterial? Material { get; set; }
 
         /// <summary>
         /// Sets the Face Normal depending on the result of the front face calculation
