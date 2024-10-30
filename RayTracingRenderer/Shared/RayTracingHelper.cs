@@ -60,6 +60,18 @@ namespace RayTracingRenderer.Shared
             return vector / (float)Math.Sqrt(lensq == 0 ? 1e-80 : lensq);
         }
 
+        public static Vector3 RandomVectorInDefocusDisk()
+        {
+            while (true)
+            {
+                var p = new Vector3(RandomFloat(-1, 1), RandomFloat(-1, 1), 0);
+                if (p.LengthSquared() <= 1)
+                {
+                    return p;
+                }
+            }
+        }
+
         public static Vector3 RandomVectorOnHemisphere(Vector3 normal)
         {
             var OnUnitSphere = RandomUnitVector();

@@ -14,6 +14,8 @@ namespace RayTracingRenderer.Rays
 
         public Vector3 Direction { get; set; }
 
+        public float DirectionLengthSquared { get; init; }
+
         public int MaxBounces { get; init; }
 
         /// <summary>
@@ -31,16 +33,21 @@ namespace RayTracingRenderer.Rays
             this.Origin = origin;
             this.Direction = direction;
             this.MaxBounces = maxBounces;
+            this.DirectionLengthSquared = this.Direction.LengthSquared();
         }
 
         public Ray(Camera camera, int pixelXPosition, int pixelYposition, int maxBounces = 10)
         {
-            this.Origin = camera.CameraCenter;
+            var p = RayTracingHelper.RandomVectorInDefocusDisk();
+            this.Origin = camera.DefocusAngle <= 0 ?
+                camera.CameraCenter :
+                camera.CameraCenter + (p[0] * camera.DefocusDiskU) + (p[1] * camera.DefocusDiskV);
             var offset = RayTracingHelper.SampleSquare();
             var pixelCenter = camera.Pixel100Location + ((pixelXPosition + offset.X) * camera.PixelDeltaU) + ((pixelYposition + offset.Y) * camera.PixelDeltaV);
-            var rayDirection = pixelCenter - camera.CameraCenter;
+            var rayDirection = pixelCenter - this.Origin;
             this.Direction = rayDirection;
             this.MaxBounces = maxBounces;
+            this.DirectionLengthSquared = this.Direction.LengthSquared();
         }
 
         /// <summary>
@@ -63,7 +70,7 @@ namespace RayTracingRenderer.Rays
         public Vector3 GetPosition(float timePassed) => this.Origin + timePassed * this.Direction;
 
         /// <summary>
-        /// Gets the ray color. TODO: Change it to the actual color
+        /// Gets the ray color.
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
@@ -79,11 +86,10 @@ namespace RayTracingRenderer.Rays
             if (world.HitObject(
                 ray,
                 new Interval(0.001f, float.PositiveInfinity), // Adding 0.0001 to prevent floating point anomalies
-                record,
-                out var outRecord))
+                ref record))
             {
-                outRecord.Material = outRecord.Material ?? new DiffuseMaterial(new Vector3(1, 1, 1)); // If material is not set, default to a diffuse material
-                if (outRecord.Material.Scatter(ray, outRecord, out var attenuation, out var scatteredRay))
+                record.Material = record.Material ?? new DiffuseMaterial(new Vector3(1, 1, 1)); // If material is not set, default to a diffuse material
+                if (record.Material.Scatter(ray, record, out var attenuation, out var scatteredRay))
                 {
                     return attenuation * this.RayColor(scatteredRay, world, depth - 1);
                 }

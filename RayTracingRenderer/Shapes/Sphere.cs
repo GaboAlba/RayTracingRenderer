@@ -1,6 +1,7 @@
 ﻿namespace RayTracingRenderer.Shapes
 {
     using RayTracingRenderer;
+    using RayTracingRenderer.BoundingVolumeHierarchy;
     using RayTracingRenderer.Materials;
     using RayTracingRenderer.Rays;
     using RayTracingRenderer.Shapes.Hittable;
@@ -15,25 +16,29 @@
 
         public IMaterial Material { get; set; }
 
+        public float RadiusSquared { get; init; }
+
         public Sphere(Vector3 center, float radius, IMaterial material)
         {
             Center = center;
             Radius = Math.Max(0, radius);
             this.Material = material;
+            this.RadiusSquared = this.Radius * this.Radius;
+
         }
 
-        public bool HitObject(Ray ray, Interval interval, HitRecord record, out HitRecord outputRecord)
+        public bool HitObject(Ray ray, Interval interval, ref HitRecord record)
         {
             if (!this.IsSphereHit(ray, out var discriminant, out var a, out var h))
             {
-                outputRecord = record;
+                //outputRecord = record;
                 return false;
             }
 
             var root = this.GetNearestRoot(discriminant, h, a, interval);
             if (root == null)
             {
-                outputRecord = record;
+                //outputRecord = record;
                 return false;
             }
 
@@ -44,7 +49,7 @@
             record.SetFaceNormal(ray, record.HitNormal);
             record.Material = this.Material;
 
-            outputRecord = record;
+            //outputRecord = record;
             return true;
         }
 
@@ -63,14 +68,19 @@
             return root;
         }
 
+        private static float DotProductManual(Vector3 v1, Vector3 v2)
+        {
+            return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+        }
+
         private float GetDiscriminant(Ray ray, out float a, out float h, out float c)
         {
             var centerToRayVector = this.Center - ray.Origin;
 
             // Quadratic formula
-            a = ray.Direction.LengthSquared();
-            h = Vector3.Dot(ray.Direction, centerToRayVector);
-            c = centerToRayVector.LengthSquared() - this.Radius * this.Radius;
+            a = ray.DirectionLengthSquared;
+            h = DotProductManual(ray.Direction, centerToRayVector);
+            c = centerToRayVector.LengthSquared() - this.RadiusSquared;
             var discriminant = (h * h) - (a * c);
             return discriminant;
         }

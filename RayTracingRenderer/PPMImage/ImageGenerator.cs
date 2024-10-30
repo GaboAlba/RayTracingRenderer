@@ -13,21 +13,25 @@
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ImageGenerator));
 
-        public static void RenderImage(int width, int height)
+        public static void RenderImage()
         {
             var camera = new Camera(
                 aspectRatio: 16.0f / 9.0f,
-                imageWidth: 400,
-                viewportHeight: 2.0f,
+                imageWidth: 800,
+                verticalFieldfOfView: 100,
                 focalLength: 1.0f,
                 cameraCenter: new Vector3(0, 0, 0),
-                samplesPerPixel: 100);
+                target: new Vector3(0, 0, -1),
+                cameraUp: new Vector3(0, 1, 0),
+                samplesPerPixel: 10,
+                defocusAngle: 10,
+                focusDistance: 3.4f);
 
             // Define materials' albedo
             var groundMaterial = new DiffuseMaterial(new Vector3(0.8f, 0.8f, 0));
             var centerSphereMaterial = new DiffuseMaterial(new Vector3(0.1f, 0.2f, 0.5f));
-            var leftSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.8f, 0.8f));
-            var rightSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.6f, 0.2f));
+            var leftSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.8f, 0.8f), 0.3f);
+            var rightSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.6f, 0.2f), 1.0f);
 
             // Initialize the scene
             var world = new HittableObjectsList();
