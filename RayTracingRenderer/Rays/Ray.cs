@@ -74,7 +74,7 @@ namespace RayTracingRenderer.Rays
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
-        public Vector3 RayColor(Ray ray, IHittableObject world, int depth)
+        public Vector3 RayColor(Ray ray, HittableObjectsList world, int depth)
         {
             // Stop if max amount of bounces has been achieved
             if (depth <= 0)

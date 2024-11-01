@@ -9,6 +9,7 @@
     using RayTracingRenderer.Shared;
     using RayTracingRenderer.Utils;
     using System.Numerics;
+    [Obsolete("Image Generator is single threaded and not optimized")]
     public static class ImageGenerator
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ImageGenerator));

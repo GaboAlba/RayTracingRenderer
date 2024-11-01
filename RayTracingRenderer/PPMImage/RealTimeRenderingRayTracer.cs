@@ -13,6 +13,7 @@
     using System.Threading.Tasks;
     using System.Windows.Forms;
 
+    [Obsolete("Please use the RealTimeRayTracer Project")]
     public class RealTimeRenderingRayTracer : Form
     {
         private Bitmap Bitmap;
@@ -34,7 +35,7 @@
                     target: new Vector3(0, 0, 0),
                     cameraUp: new Vector3(0, 1, 0),
                     samplesPerPixel: 10,
-                    defocusAngle: 0.6f,
+                    defocusAngle: 0f,
                     focusDistance: 10f);
             this.Bitmap = new Bitmap(this.Camera.ImageWidth, this.Camera.ImageHeight);
             this.KeyDown += this.ReadPosition;
@@ -64,7 +65,7 @@
         {
             // Create the scene
             var world = new HittableObjectsList();
-            this.CreateWorld(world, true);
+            this.CreateWorld(world, false);
             Console.WriteLine("Loaded world");
 
             // Create Enumerable
@@ -190,7 +191,6 @@
                 // Define materials' albedo
                 var groundMaterial = new DiffuseMaterial(new Vector3(0.8f, 0.8f, 0));
                 var centerSphereMaterial = new DiffuseMaterial(new Vector3(0.1f, 0.2f, 0.5f));
-                // var leftSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.8f, 0.8f), 0.3f);
                 var leftSphereMaterial = new DielectricMaterial(1.5f);
                 var leftBubbleMaterial = new DielectricMaterial(1.0f / 1.5f);
                 var rightSphereMaterial = new MetalMaterial(new Vector3(0.8f, 0.6f, 0.2f), 0.0f);
@@ -229,7 +229,7 @@
                                 var albedo = RayTracingHelper.RandomVector3(0.5f, 1);
                                 var fuzz = RayTracingHelper.RandomFloat(0, 0.3f);
                                 material = new MetalMaterial(albedo, fuzz);
-                                world.objects.Add(new Sphere(center, 0.2f, material));
+                                world.objects.Append(new Sphere(center, 0.2f, material));
                             }
                             else
                             {

@@ -92,5 +92,10 @@ namespace RayTracingRenderer.Shared
 
             return 0;
         }
+
+        public static float GammaToLinear(float gammaComponent)
+        {
+            return gammaComponent * gammaComponent;
+        }
     }
 }

@@ -20,25 +20,22 @@
 
         public Sphere(Vector3 center, float radius, IMaterial material)
         {
-            Center = center;
-            Radius = Math.Max(0, radius);
+            this.Center = center;
+            this.Radius = Math.Max(0, radius);
             this.Material = material;
             this.RadiusSquared = this.Radius * this.Radius;
-
         }
 
         public bool HitObject(Ray ray, Interval interval, ref HitRecord record)
         {
             if (!this.IsSphereHit(ray, out var discriminant, out var a, out var h))
             {
-                //outputRecord = record;
                 return false;
             }
 
             var root = this.GetNearestRoot(discriminant, h, a, interval);
             if (root == null)
             {
-                //outputRecord = record;
                 return false;
             }
 
@@ -49,16 +46,16 @@
             record.SetFaceNormal(ray, record.HitNormal);
             record.Material = this.Material;
 
-            //outputRecord = record;
             return true;
         }
 
         private float? GetNearestRoot(float discriminant, float h, float a, Interval interval)
         {
-            var root = (h - (float)Math.Sqrt(discriminant)) / a;
+            var sqrtDiscriminant = (float)Math.Sqrt(discriminant);
+            var root = (h - sqrtDiscriminant) / a;
             if (!interval.Surrounds(root))
             {
-                root = (h + (float)Math.Sqrt(discriminant)) / a;
+                root = (h + sqrtDiscriminant) / a;
                 if (!interval.Surrounds(root))
                 {
                     return null;
@@ -73,14 +70,14 @@
             return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
         }
 
-        private float GetDiscriminant(Ray ray, out float a, out float h, out float c)
+        private float GetDiscriminant(Ray ray, out float a, out float h)
         {
             var centerToRayVector = this.Center - ray.Origin;
 
             // Quadratic formula
             a = ray.DirectionLengthSquared;
             h = DotProductManual(ray.Direction, centerToRayVector);
-            c = centerToRayVector.LengthSquared() - this.RadiusSquared;
+            var c = centerToRayVector.LengthSquared() - this.RadiusSquared;
             var discriminant = (h * h) - (a * c);
             return discriminant;
         }
@@ -95,7 +92,7 @@
                 return false;
             }
 
-            discriminant = this.GetDiscriminant(ray, out a, out h, out _);
+            discriminant = this.GetDiscriminant(ray, out a, out h);
 
             return discriminant >= 0;
         }
