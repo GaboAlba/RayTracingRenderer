@@ -9,12 +9,9 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Timer = System.Windows.Forms.Timer;
 
 namespace RealTimeRayTracer
 {
@@ -27,11 +24,9 @@ namespace RealTimeRayTracer
         private int bytesPerPixel = 4; // For PixelFormats.Bgra32
         private byte[] pixelBuffer;
         private float[] accumulatedBuffer;
-        private Timer RenderTimer = new();
-        private Camera Camera;
-        private Random Randomizer = new Random();
+        private readonly Camera Camera;
         private HittableObjectsList world;
-        private bool moved;
+        private volatile bool moved;
         private int samplesProcessed;
         private IEnumerable<(int i, int j)> pixelPositions;
 
@@ -46,28 +41,20 @@ namespace RealTimeRayTracer
                     target: new Vector3(0, 0, 0),
                     cameraUp: new Vector3(0, 1, 0),
                     samplesPerPixel: 1,
-                    defocusAngle: 0f,
+                    defocusAngle: 0.6f,
                     focusDistance: 10f,
                     movementSpeed: 400000);
             this.InitializeComponent();
 
+            // Initialize enumarable for the pixel positions
             this.pixelPositions = Enumerable.Range(0, this.Camera.ImageWidth)
                                    .SelectMany(i => Enumerable.Range(0, this.Camera.ImageHeight)
                                                               .Select(j => (i, j)));
-            this.pixelPositions = this.pixelPositions.OrderBy(_ => Randomizer.Next());
 
             // Initialize WriteableBitmap
             writeableBitmap = new WriteableBitmap(this.Camera.ImageWidth, this.Camera.ImageHeight, 96, 96, PixelFormats.Bgra32, null);
             this.displayImage.Source = writeableBitmap;
             this.samplesProcessed = 1;
-
-            // Set WriteableBitmap as the source for an Image control in the XAML
-            Image displayImage = new Image
-            {
-                Source = writeableBitmap,
-                Width = this.Camera.ImageWidth,
-                Height = this.Camera.ImageHeight,
-            };
 
             // Initialize pixel buffer
             this.pixelBuffer = new byte[this.Camera.ImageWidth * this.Camera.ImageHeight * bytesPerPixel];
@@ -77,6 +64,7 @@ namespace RealTimeRayTracer
             this.world = new HittableObjectsList();
             this.CreateWorld(this.world, false);
 
+            // Add key press events to move the camera
             this.KeyDown += this.ReadPosition;
 
             // Start a rendering loop to continuously update the bitmap
@@ -87,7 +75,7 @@ namespace RealTimeRayTracer
         {
             while (true)
             {
-                // Update pixel buffer with random color data or ray-tracing results
+                // Update pixel buffer with ray-tracing results
                 var stopwatch = Stopwatch.StartNew();
                 this.CalculatePixels();
                 stopwatch.Stop();
@@ -104,6 +92,12 @@ namespace RealTimeRayTracer
 
         private void CalculatePixels()
         {
+            if (this.moved)
+            {
+                this.samplesProcessed = 1;
+                Array.Clear(this.accumulatedBuffer, 0, this.accumulatedBuffer.Length);
+            }
+
             this.moved = false;
 
             Parallel.ForEach(this.pixelPositions, position =>
@@ -111,7 +105,7 @@ namespace RealTimeRayTracer
                 var index = (position.j * this.Camera.ImageWidth + position.i) * bytesPerPixel;
 
                 var pixelColor = new Vector3(0, 0, 0);
-                var ray = new Ray(this.Camera, position.i, position.j, 10);
+                var ray = new Ray(this.Camera, position.i, position.j, 50);
                 pixelColor = ray.RayColor(ray, this.world, ray.MaxBounces);
 
                 // Accumulate color
@@ -127,18 +121,11 @@ namespace RealTimeRayTracer
                 this.pixelBuffer[index + 1] = green;
                 this.pixelBuffer[index + 2] = red;
                 this.pixelBuffer[index + 3] = 255;
-
-                if (this.moved)
-                {
-                    this.samplesProcessed = 1;
-                    this.accumulatedBuffer[index + 0] = 0;
-                    this.accumulatedBuffer[index + 1] = 0;
-                    this.accumulatedBuffer[index + 2] = 0;
-                }
             });
             this.samplesProcessed++;
         }
 
+        // Need to move this into the camera and make it so it moves with respect to the target
         private void ReadPosition(object sender, System.Windows.Input.KeyEventArgs e)
         {
             Console.WriteLine("Reading positions");
@@ -172,7 +159,7 @@ namespace RealTimeRayTracer
             Console.WriteLine($"New Camera Center: {this.Camera.CameraCenter}");
         }
 
-        private void CreateWorld(HittableObjectsList world, bool isRandom = false, int numberOfObjects = 100)
+        private void CreateWorld(HittableObjectsList world, bool isRandom = false)
         {
             // Use random as false for development purposes
             if (!isRandom)
@@ -218,7 +205,7 @@ namespace RealTimeRayTracer
                                 var albedo = RayTracingHelper.RandomVector3(0.5f, 1);
                                 var fuzz = RayTracingHelper.RandomFloat(0, 0.3f);
                                 material = new MetalMaterial(albedo, fuzz);
-                                world.objects.Append(new Sphere(center, 0.2f, material));
+                                world.objects.Add(new Sphere(center, 0.2f, material));
                             }
                             else
                             {
@@ -260,42 +247,6 @@ namespace RealTimeRayTracer
             var blueByte = (byte)(256 * intensity.Clamp(blue));
 
             return (redByte, greenByte, blueByte);
-        }
-
-        private Vector3 ReadColor(float red, float green, float blue)
-        {
-            red = red / 256;
-            green = green/256;
-            blue = blue / 256;
-
-            var intensity = new Interval(0.000f, 0.999f);
-            red = intensity.Clamp(red);
-            green = intensity.Clamp(green);
-            blue = intensity.Clamp(blue);
-
-            red = RayTracingHelper.GammaToLinear(red);
-            green = RayTracingHelper.GammaToLinear(green);
-            blue = RayTracingHelper.GammaToLinear(blue);
-
-            return new Vector3(red, green, blue);
-        }
-
-        private void UpdatePixelBuffer()
-        {
-            // Modify the pixel buffer, setting color data
-            Parallel.For(0, this.Camera.ImageHeight, y =>
-            {
-                for (int x = 0; x < this.Camera.ImageWidth; x++)
-                {
-                    int index = (y * this.Camera.ImageWidth + x) * bytesPerPixel;
-
-                    // Example data (replace this with your actual pixel data)
-                    pixelBuffer[index + 0] = (byte)(x % 256); // Blue
-                    pixelBuffer[index + 1] = (byte)(y % 256); // Green
-                    pixelBuffer[index + 2] = 128;             // Red
-                    pixelBuffer[index + 3] = 255;             // Alpha
-                }
-            });
         }
 
         private void UpdateWriteableBitmap()

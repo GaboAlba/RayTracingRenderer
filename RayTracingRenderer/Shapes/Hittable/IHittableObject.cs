@@ -1,7 +1,6 @@
 ﻿namespace RayTracingRenderer.Shapes.Hittable
 {
     using RayTracingRenderer;
-    using RayTracingRenderer.BoundingVolumeHierarchy;
     using RayTracingRenderer.Rays;
     using RayTracingRenderer.Utils;
     using System.Numerics;

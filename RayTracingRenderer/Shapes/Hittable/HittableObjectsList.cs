@@ -31,7 +31,7 @@
 
             foreach (var hittableObject in this.objects)
             {
-                if ((hittableObject.Center - ray.Origin).LengthSquared() > 0 && hittableObject.HitObject(
+                if (hittableObject.HitObject(
                     ray,
                     new Interval(interval.MinValue, closestRoot),
                     ref tempRecord))

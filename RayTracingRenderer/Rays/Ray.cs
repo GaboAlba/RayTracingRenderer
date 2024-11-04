@@ -18,6 +18,8 @@ namespace RayTracingRenderer.Rays
 
         public int MaxBounces { get; init; }
 
+        public int CurrentBounces { get; set; }
+
         /// <summary>
         /// Default constructor
         /// </summary>

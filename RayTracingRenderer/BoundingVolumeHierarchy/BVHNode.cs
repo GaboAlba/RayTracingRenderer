@@ -1,14 +1,4 @@
-﻿using RayTracingRenderer.Rays;
-using RayTracingRenderer.Shapes.Hittable;
-using RayTracingRenderer.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RayTracingRenderer.BoundingVolumeHierarchy
+﻿namespace RayTracingRenderer.BoundingVolumeHierarchy
 {
     public class BVHNode
     {
