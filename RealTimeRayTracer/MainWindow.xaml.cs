@@ -37,13 +37,13 @@ namespace RealTimeRayTracer
                     imageWidth: 1200,
                     verticalFieldfOfView: 20,
                     focalLength: 1.0f,
-                    cameraCenter: new Vector3(13, 2, 3),
+                    cameraCenter: new Vector3(0, 0, 2),
                     target: new Vector3(0, 0, 0),
                     cameraUp: new Vector3(0, 1, 0),
                     samplesPerPixel: 1,
-                    defocusAngle: 0.6f,
-                    focusDistance: 10f,
-                    movementSpeed: 400000);
+                    defocusAngle: 0f,
+                    focusDistance: 100f,
+                    movementSpeed: 800000);
             this.InitializeComponent();
 
             // Initialize enumarable for the pixel positions
@@ -153,6 +153,22 @@ namespace RealTimeRayTracer
                     break;
                 case Key.E:
                     this.Camera.CameraCenter += Vector3.UnitY * this.Camera.MovementSpeed * (1 / (float)TimeSpan.TicksPerSecond);
+                    this.moved = true;
+                    break;
+                case Key.Up:
+                    this.Camera.Pixel100Location += Vector3.UnitY * this.Camera.MovementSpeed * 10 * (1 / (float)TimeSpan.TicksPerSecond);
+                    this.moved = true;
+                    break;
+                case Key.Down:
+                    this.Camera.Pixel100Location -= Vector3.UnitY * this.Camera.MovementSpeed * 10 * (1 / (float)TimeSpan.TicksPerSecond);
+                    this.moved = true;
+                    break;
+                case Key.Right:
+                    this.Camera.Pixel100Location += Vector3.UnitX * this.Camera.MovementSpeed * 10 * (1 / (float)TimeSpan.TicksPerSecond);
+                    this.moved = true;
+                    break;
+                case Key.Left:
+                    this.Camera.Pixel100Location -= Vector3.UnitX * this.Camera.MovementSpeed * 10 * (1 / (float)TimeSpan.TicksPerSecond);
                     this.moved = true;
                     break;
             }

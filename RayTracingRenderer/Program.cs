@@ -7,10 +7,10 @@
         public static int Main()
         {
             Application.EnableVisualStyles();
-            Application.Run(new RealTimeRenderingRayTracer());
+            // Application.Run(new RealTimeRenderingRayTracer());
 
-            // Only use this for experimental purposes, it isvery slow and produces a not friendly PPM Image
-            // ImageGenerator.RenderImage();
+            // Only use this for experimental purposes, it is very slow and produces a not friendly PPM Image
+            ImageGenerator.RenderImage();
 
             return 0;
         }

@@ -51,7 +51,7 @@ namespace RayTracingRenderer.PPMImage
 
         public Vector3 ViewportUpperLeftPixel { get; init; }
 
-        public Vector3 Pixel100Location { get; init; }
+        public Vector3 Pixel100Location { get; set; }
 
         public Vector3 W { get; init; }
 
